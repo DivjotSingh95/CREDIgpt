@@ -98,12 +98,8 @@ def get_stats():
                 return json.load(f)
         except Exception:
             pass
-    
-    # Generate fallback if missing
-    stats = generate_fallback_stats()
-    if stats:
-        return stats
-    return JSONResponse(status_code=404, content={"detail": "No stats found and fallback generation failed."})
+    # Return empty response instead of fallback generation so app starts fresh
+    return {}
 
 @app.get("/api/load-sample")
 def load_sample_dataset():
