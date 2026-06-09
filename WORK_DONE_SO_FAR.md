@@ -1,4 +1,4 @@
-# RiskIntel credit risk dashboard website
+# CREDIgpt credit risk dashboard website
 # Work Done So Far - Handoff & Architecture Notes
 
 We have successfully migrated the RiskIntel Credit Risk Intelligence Platform from a Streamlit-wrapped app to a standard website architecture. The app now runs as a high-performance **FastAPI backend** and a pure **HTML5/CSS3/JavaScript Single-Page Application (SPA)** frontend, preserving the entire high-fidelity design system, graphics, predictive logic, and features.
