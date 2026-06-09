@@ -116,7 +116,7 @@ def load_sample_dataset(type: str = "portfolio"):
         if os.path.exists(processed_csv_path):
             try:
                 print("Reading selected_features_processed.csv to build sample...")
-                df = pd.read_csv(processed_csv_path, nrows=50)
+                df = pd.read_csv(processed_csv_path, nrows=150)
                 # Keep only the base target columns to simulate a raw upload
                 base_targets = get_base_target_columns()
                 existing_base = [col for col in base_targets if col in df.columns]
@@ -128,118 +128,109 @@ def load_sample_dataset(type: str = "portfolio"):
         if type == "train":
             if df is None and os.path.exists(train_csv_path):
                 try:
-                    df = pd.read_csv(train_csv_path, nrows=50)
+                    df = pd.read_csv(train_csv_path, nrows=150)
                 except Exception:
                     pass
             if df is None and os.path.exists(test_csv_path):
                 try:
-                    df = pd.read_csv(test_csv_path, nrows=50)
+                    df = pd.read_csv(test_csv_path, nrows=150)
                 except Exception:
                     pass
         else:
             if df is None and os.path.exists(test_csv_path):
                 try:
-                    df = pd.read_csv(test_csv_path, nrows=50)
+                    df = pd.read_csv(test_csv_path, nrows=150)
                 except Exception:
                     pass
             if df is None and os.path.exists(train_csv_path):
                 try:
-                    df = pd.read_csv(train_csv_path, nrows=50)
+                    df = pd.read_csv(train_csv_path, nrows=150)
                 except Exception:
                     pass
                 
         if df is None:
-            # Generate dummy dataframe with essential columns
-            print("Generating fallback mock sample CSV...")
+            # Generate dummy dataframe with essential columns (150 rows with mixed risk profiles)
+            print("Generating fallback mock sample CSV with mixed risk profiles...")
             dummy_data = []
-            for i in range(50):
-                if type == "portfolio":
-                    dummy_data.append({
-                        "Applicant ID": 100001 + i,
-                        "CODE_GENDER": "M" if i % 2 == 0 else "F",
-                        "CNT_CHILDREN": i % 3,
-                        "Annual Earnings": 120000.0 + (i * 3500.0),
-                        "Loan Value": 300000.0 + (i * 12000.0),
-                        "AMT_ANNUITY": 15000.0 + (i * 450.0),
-                        "AMT_GOODS_PRICE": 280000.0 + (i * 12000.0),
-                        "NAME_INCOME_TYPE": "Working" if i % 3 != 0 else "Commercial associate",
-                        "NAME_EDUCATION_TYPE": "Secondary / secondary special" if i % 4 != 0 else "Higher education",
-                        "NAME_FAMILY_STATUS": "Married" if i % 2 == 0 else "Single",
-                        "NAME_HOUSING_TYPE": "House / apartment",
-                        "Age in Days": -12000 - (i * 120),
-                        "Employment Days": -1500 - (i * 50),
-                        "DAYS_REGISTRATION": -4000.0,
-                        "DAYS_ID_PUBLISH": -2500,
-                        "CNT_FAM_MEMBERS": (i % 3) + 2.0,
-                        "REGION_RATING_CLIENT": 2,
-                        "REGION_RATING_CLIENT_W_CITY": 2,
-                        "ORGANIZATION_TYPE": "Business Entity Type 3",
-                        "EXT_SOURCE_1": 0.45 + (i * 0.005),
-                        "EXT_SOURCE_2": 0.55 + (i * 0.002),
-                        "EXT_SOURCE_3": 0.35 + (i * 0.006),
-                        "OBS_30_CNT_SOCIAL_CIRCLE": 1.0,
-                        "DEF_30_CNT_SOCIAL_CIRCLE": 0.0,
-                        "OBS_60_CNT_SOCIAL_CIRCLE": 1.0,
-                        "DEF_60_CNT_SOCIAL_CIRCLE": 0.0,
-                        "DAYS_LAST_PHONE_CHANGE": -100.0,
-                        "AMT_REQ_CREDIT_BUREAU_HOUR": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_DAY": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_WEEK": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_MON": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_QRT": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_YEAR": 1.0
-                    })
-                else:
-                    dummy_data.append({
-                        "SK_ID_CURR": 100001 + i,
-                        "CODE_GENDER": "M" if i % 2 == 0 else "F",
-                        "CNT_CHILDREN": i % 3,
-                        "AMT_INCOME_TOTAL": 120000.0 + (i * 3500.0),
-                        "AMT_CREDIT": 300000.0 + (i * 12000.0),
-                        "AMT_ANNUITY": 15000.0 + (i * 450.0),
-                        "AMT_GOODS_PRICE": 280000.0 + (i * 12000.0),
-                        "NAME_INCOME_TYPE": "Working" if i % 3 != 0 else "Commercial associate",
-                        "NAME_EDUCATION_TYPE": "Secondary / secondary special" if i % 4 != 0 else "Higher education",
-                        "NAME_FAMILY_STATUS": "Married" if i % 2 == 0 else "Single",
-                        "NAME_HOUSING_TYPE": "House / apartment",
-                        "DAYS_BIRTH": -12000 - (i * 120),
-                        "DAYS_EMPLOYED": -1500 - (i * 50),
-                        "DAYS_REGISTRATION": -4000.0,
-                        "DAYS_ID_PUBLISH": -2500,
-                        "CNT_FAM_MEMBERS": (i % 3) + 2.0,
-                        "REGION_RATING_CLIENT": 2,
-                        "REGION_RATING_CLIENT_W_CITY": 2,
-                        "ORGANIZATION_TYPE": "Business Entity Type 3",
-                        "EXT_SOURCE_1": 0.45 + (i * 0.005),
-                        "EXT_SOURCE_2": 0.55 + (i * 0.002),
-                        "EXT_SOURCE_3": 0.35 + (i * 0.006),
-                        "OBS_30_CNT_SOCIAL_CIRCLE": 1.0,
-                        "DEF_30_CNT_SOCIAL_CIRCLE": 0.0,
-                        "OBS_60_CNT_SOCIAL_CIRCLE": 1.0,
-                        "DEF_60_CNT_SOCIAL_CIRCLE": 0.0,
-                        "DAYS_LAST_PHONE_CHANGE": -100.0,
-                        "AMT_REQ_CREDIT_BUREAU_HOUR": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_DAY": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_WEEK": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_MON": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_QRT": 0.0,
-                        "AMT_REQ_CREDIT_BUREAU_YEAR": 1.0
-                    })
-            df = pd.DataFrame(dummy_data)
-        else:
-            if type == "portfolio":
-                # Rename columns to simulate real-world uploads
-                df = df.rename(columns={
-                    "SK_ID_CURR": "Applicant ID",
-                    "AMT_INCOME_TOTAL": "Annual Earnings",
-                    "AMT_CREDIT": "Loan Value",
-                    "DAYS_BIRTH": "Age in Days",
-                    "DAYS_EMPLOYED": "Employment Days",
-                    "CODE_GENDER": "Gender Code"
+            for i in range(150):
+                # We vary scores dynamically based on i % 4 to build Low, Medium, High, and Critical risk customers
+                segment = i % 4
+                if segment == 0:  # Low Risk
+                    ext1, ext2, ext3 = 0.75 + (i % 5) * 0.03, 0.80 + (i % 3) * 0.02, 0.72 + (i % 4) * 0.02
+                    income = 200000.0 + (i % 10) * 10000.0
+                    credit = 300000.0 + (i % 5) * 20000.0
+                    annuity = 15000.0 + (i % 5) * 500.0
+                    age_days = -16000 - (i % 10) * 200
+                    emp_days = -3000 - (i % 10) * 100
+                elif segment == 1:  # Medium Risk
+                    ext1, ext2, ext3 = 0.45 + (i % 5) * 0.02, 0.50 + (i % 3) * 0.02, 0.42 + (i % 4) * 0.02
+                    income = 120000.0 + (i % 10) * 5000.0
+                    credit = 450000.0 + (i % 5) * 20000.0
+                    annuity = 20000.0 + (i % 5) * 800.0
+                    age_days = -12000 - (i % 10) * 150
+                    emp_days = -1500 - (i % 10) * 80
+                elif segment == 2:  # High Risk
+                    ext1, ext2, ext3 = 0.22 + (i % 5) * 0.01, 0.25 + (i % 3) * 0.01, 0.20 + (i % 4) * 0.01
+                    income = 80000.0 + (i % 10) * 4000.0
+                    credit = 600000.0 + (i % 5) * 30000.0
+                    annuity = 28000.0 + (i % 5) * 1200.0
+                    age_days = -10000 - (i % 10) * 100
+                    emp_days = -500 - (i % 10) * 40
+                else:  # Critical Risk (High Risk in classification)
+                    ext1, ext2, ext3 = 0.05 + (i % 5) * 0.01, 0.10 + (i % 3) * 0.01, 0.07 + (i % 4) * 0.01
+                    income = 45000.0 + (i % 10) * 2000.0
+                    credit = 800000.0 + (i % 5) * 40000.0
+                    annuity = 35000.0 + (i % 5) * 1500.0
+                    age_days = -8500 - (i % 10) * 80
+                    emp_days = -100 - (i % 10) * 10
+
+                dummy_data.append({
+                    "SK_ID_CURR": 100001 + i,
+                    "CODE_GENDER": "M" if i % 2 == 0 else "F",
+                    "CNT_CHILDREN": i % 3,
+                    "AMT_INCOME_TOTAL": income,
+                    "AMT_CREDIT": credit,
+                    "AMT_ANNUITY": annuity,
+                    "AMT_GOODS_PRICE": credit * 0.9,
+                    "NAME_INCOME_TYPE": "Working" if i % 3 != 0 else "Commercial associate",
+                    "NAME_EDUCATION_TYPE": "Secondary / secondary special" if segment != 0 else "Higher education",
+                    "NAME_FAMILY_STATUS": "Married" if i % 2 == 0 else "Single",
+                    "NAME_HOUSING_TYPE": "House / apartment",
+                    "DAYS_BIRTH": age_days,
+                    "DAYS_EMPLOYED": emp_days,
+                    "DAYS_REGISTRATION": -4000.0,
+                    "DAYS_ID_PUBLISH": -2500,
+                    "CNT_FAM_MEMBERS": (i % 3) + 2.0,
+                    "REGION_RATING_CLIENT": 2 if segment < 2 else 3,
+                    "REGION_RATING_CLIENT_W_CITY": 2 if segment < 2 else 3,
+                    "ORGANIZATION_TYPE": "Business Entity Type 3",
+                    "EXT_SOURCE_1": ext1,
+                    "EXT_SOURCE_2": ext2,
+                    "EXT_SOURCE_3": ext3,
+                    "OBS_30_CNT_SOCIAL_CIRCLE": 1.0,
+                    "DEF_30_CNT_SOCIAL_CIRCLE": 0.0,
+                    "OBS_60_CNT_SOCIAL_CIRCLE": 1.0,
+                    "DEF_60_CNT_SOCIAL_CIRCLE": 0.0,
+                    "DAYS_LAST_PHONE_CHANGE": -100.0,
+                    "AMT_REQ_CREDIT_BUREAU_HOUR": 0.0,
+                    "AMT_REQ_CREDIT_BUREAU_DAY": 0.0,
+                    "AMT_REQ_CREDIT_BUREAU_WEEK": 0.0,
+                    "AMT_REQ_CREDIT_BUREAU_MON": 0.0,
+                    "AMT_REQ_CREDIT_BUREAU_QRT": 0.0,
+                    "AMT_REQ_CREDIT_BUREAU_YEAR": 1.0
                 })
-            else:
-                # Keep target columns as is
-                pass
+            df = pd.DataFrame(dummy_data)
+            
+        if type == "portfolio":
+            # Rename columns to simulate real-world uploads
+            df = df.rename(columns={
+                "SK_ID_CURR": "Applicant ID",
+                "AMT_INCOME_TOTAL": "Annual Earnings",
+                "AMT_CREDIT": "Loan Value",
+                "DAYS_BIRTH": "Age in Days",
+                "DAYS_EMPLOYED": "Employment Days",
+                "CODE_GENDER": "Gender Code"
+            })
             
         df.to_csv(sample_file_path, index=False)
 
