@@ -668,10 +668,10 @@
   // Set this to your Render backend URL when deploying.
   // If empty, relative path is used (default for local development)
   let savedBackendUrl = localStorage.getItem('credigpt_backend_url');
-  if (savedBackendUrl === null) {
+  if (savedBackendUrl === null || savedBackendUrl === 'https://credigpt-backend.onrender.com') {
     savedBackendUrl = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
       ? ''
-      : 'https://credigpt-backend.onrender.com'; // Default fallback
+      : 'https://credigpt.onrender.com'; // Default fallback
   }
   let API_BASE = savedBackendUrl;
 
