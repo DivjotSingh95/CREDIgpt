@@ -99,20 +99,54 @@ def run_predictions(df: pd.DataFrame, model: xgb.XGBClassifier) -> dict:
     p_train = 0.5
     proba_cal = (proba * p_true / p_train) / (proba * p_true / p_train + (1 - proba) * (1 - p_true) / (1 - p_train))
 
-    # Apply risk-adjustments for extreme debt ratios (to resolve tree extrapolation limits in What-If Simulator)
+    # Apply custom feature risk-weights (resolves low-risk bias and tree extrapolation limits)
     if "CREDIT_TO_INCOME_RATIO" in df.columns:
         for idx in range(len(proba_cal)):
             r_credit = df.iloc[idx]["CREDIT_TO_INCOME_RATIO"]
             r_annuity = df.iloc[idx]["ANNUITY_TO_INCOME_RATIO"] if "ANNUITY_TO_INCOME_RATIO" in df.columns else np.nan
             
             penalty = 0.0
+            
+            # 1. Leverage / Debt-to-Income weights
             if pd.notna(r_credit) and r_credit > 8.0:
                 penalty += min(0.5, (r_credit - 8.0) * 0.03)
+            elif pd.notna(r_credit) and r_credit > 3.0:
+                # Moderate leverage weight
+                penalty += min(0.15, (r_credit - 3.0) * 0.03)
+                
             if pd.notna(r_annuity) and r_annuity > 0.35:
                 penalty += min(0.4, (r_annuity - 0.35) * 0.6)
-                
+            elif pd.notna(r_annuity) and r_annuity > 0.12:
+                # Moderate annuity weight
+                penalty += min(0.15, (r_annuity - 0.12) * 0.4)
+
+            # 2. External Credit Bureau Ratings
+            ext1 = df.iloc[idx]["EXT_SOURCE_1"] if "EXT_SOURCE_1" in df.columns else np.nan
+            ext2 = df.iloc[idx]["EXT_SOURCE_2"] if "EXT_SOURCE_2" in df.columns else np.nan
+            ext3 = df.iloc[idx]["EXT_SOURCE_3"] if "EXT_SOURCE_3" in df.columns else np.nan
+            
+            for ext in (ext1, ext2, ext3):
+                if pd.notna(ext) and ext < 0.35:
+                    penalty += (0.35 - ext) * 0.3
+                    
+            # 3. Short Employment Tenure
+            if "DAYS_EMPLOYED" in df.columns:
+                days_emp = df.iloc[idx]["DAYS_EMPLOYED"]
+                if pd.notna(days_emp):
+                    emp_years = abs(days_emp) / 365.25 if days_emp < 365243 else 0.0
+                    if emp_years < 3.0:
+                        penalty += (3.0 - emp_years) * 0.025
+                        
+            # 4. Age Risk Factor
+            if "DAYS_BIRTH" in df.columns:
+                days_birth = df.iloc[idx]["DAYS_BIRTH"]
+                if pd.notna(days_birth):
+                    age_years = abs(days_birth) / 365.25
+                    if age_years < 30.0:
+                        penalty += (30.0 - age_years) * 0.005
+                        
             if penalty > 0:
-                proba_cal[idx] = proba_cal[idx] + (1.0 - proba_cal[idx]) * penalty
+                proba_cal[idx] = proba_cal[idx] + (1.0 - proba_cal[idx]) * min(0.75, penalty)
 
     # Determine default prediction at High Risk threshold (>= 15% probability of default)
     pred = (proba_cal >= 0.15).astype(int)
