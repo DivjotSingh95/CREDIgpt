@@ -1,4 +1,4 @@
-# RiskIntel Credit Risk Intelligence Platform
+# CREDIgpt Credit Risk Intelligence Platform
 
 A high-performance FastAPI backend + vanilla HTML/CSS/JS frontend single-page application (SPA) for the RiskIntel Credit Risk Intelligence Platform.
 
