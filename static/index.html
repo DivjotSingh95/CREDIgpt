@@ -257,14 +257,14 @@
       .mobile-menu-btn { display: grid; }
       .mobile-close-btn { display: grid; width: 36px; height: 36px; border-radius: 50%; place-items: center; border: 0; background: transparent; color: var(--on-surface-variant); cursor: pointer; }
       .mobile-close-btn:hover { background: var(--surface-container-high); }
-    }
 
-    @media (max-width: 600px) {
       .page-title-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; margin-bottom: 16px !important; }
       .page-controls { width: 100% !important; display: flex !important; gap: 8px !important; }
       .page-controls .search { width: 45% !important; flex: 1 !important; margin: 0 !important; }
       .page-controls select { width: 55% !important; flex: 1.2 !important; min-width: 0 !important; max-width: 55% !important; }
+    }
 
+    @media (max-width: 600px) {
       main { padding: 80px 12px 24px; }
       .card, .glass-card { padding: 14px; }
       .display { font-size: 28px !important; line-height: 36px !important; margin-bottom: 12px; }
