@@ -99,6 +99,21 @@ def run_predictions(df: pd.DataFrame, model: xgb.XGBClassifier) -> dict:
     p_train = 0.5
     proba_cal = (proba * p_true / p_train) / (proba * p_true / p_train + (1 - proba) * (1 - p_true) / (1 - p_train))
 
+    # Apply risk-adjustments for extreme debt ratios (to resolve tree extrapolation limits in What-If Simulator)
+    if "CREDIT_TO_INCOME_RATIO" in df.columns:
+        for idx in range(len(proba_cal)):
+            r_credit = df.iloc[idx]["CREDIT_TO_INCOME_RATIO"]
+            r_annuity = df.iloc[idx]["ANNUITY_TO_INCOME_RATIO"] if "ANNUITY_TO_INCOME_RATIO" in df.columns else np.nan
+            
+            penalty = 0.0
+            if pd.notna(r_credit) and r_credit > 8.0:
+                penalty += min(0.5, (r_credit - 8.0) * 0.03)
+            if pd.notna(r_annuity) and r_annuity > 0.35:
+                penalty += min(0.4, (r_annuity - 0.35) * 0.6)
+                
+            if penalty > 0:
+                proba_cal[idx] = proba_cal[idx] + (1.0 - proba_cal[idx]) * penalty
+
     # Determine default prediction at High Risk threshold (>= 15% probability of default)
     pred = (proba_cal >= 0.15).astype(int)
 
