@@ -132,23 +132,30 @@ Enables risk managers to adjust individual parameters (Annual Income, Credit Lim
 To prevent unrealistic ratio metrics when credit is scaled:
 - When the user modifies **Credit Limit**, the simulator dynamically scales the customer's **Loan Annuity** (`AMT_ANNUITY`) and **Purchase Goods Price` (`AMT_GOODS_PRICE`) by the same proportional factor.
 
-### 5.4 Extreme Leverage Risk Penalty
-Decision tree models (like XGBoost) cannot extrapolate linear trends beyond training splits. Consequently, setting simulated values to extreme outliers (e.g., $10,000 income and $1,000,000 credit) would normally not affect the risk score due to flat splits. 
+### 5.4 Customized Feature Risk-Weights and Extreme Penalties
+Decision tree models (like XGBoost) cannot extrapolate linear trends beyond training splits. Furthermore, probability calibration corrections can overly squash risk scores, leading to a low-risk bias (where almost all profiles are marked as Low Risk).
 
-To resolve this limitation, a smooth risk-adjustment penalty is applied to the calibrated probability $P$ in `app.py`:
-- **Credit-to-Income Penalty**: If Credit-to-Income ($R_c$) exceeds $8.0$:
+To resolve these limitations, a customized feature-weighting and penalty system is applied to the calibrated probability $P$ in `app.py`:
+- **Extreme & Moderate Leverage (Credit-to-Income $R_c$)**:
+  - If $R_c > 8.0$: $\text{Penalty}_c = \min(0.5, (R_c - 8.0) \cdot 0.03)$
+  - If $3.0 < R_c \le 8.0$: $\text{Penalty}_c = \min(0.15, (R_c - 3.0) \cdot 0.03)$
+- **Payment Burden (Annuity-to-Income $R_a$)**:
+  - If $R_a > 0.35$: $\text{Penalty}_a = \min(0.4, (R_a - 0.35) \cdot 0.6)$
+  - If $0.12 < R_a \le 0.35$: $\text{Penalty}_a = \min(0.15, (R_a - 0.12) \cdot 0.4)$
+- **External bureau ratings ($E_1, E_2, E_3$)**:
+  - For each rating $E_i < 0.35$ (poor rating): $\text{Penalty}_{e_i} = (0.35 - E_i) \cdot 0.3$ (adds up to $0.1$ risk-weight per rating).
+- **Employment History Tenure ($Y_e$ in years)**:
+  - If $Y_e < 3.0$ years (short tenure): $\text{Penalty}_{\text{emp}} = (3.0 - Y_e) \cdot 0.025$ (adds up to $0.075$ risk-weight).
+- **Age Risk Factor ($Y_a$ in years)**:
+  - If $Y_a < 30.0$ years (young applicant): $\text{Penalty}_{\text{age}} = (30.0 - Y_a) \cdot 0.005$ (adds up to $0.05$ risk-weight).
+
+- **Combined Risk Adjustment**:
   
-  $$\text{Penalty}_c = \min(0.5, (R_c - 8.0) \cdot 0.03)$$
-
-- **Annuity-to-Income Penalty**: If Annuity-to-Income ($R_a$) exceeds $0.35$ (35%):
+  $$\text{Penalty}_{\text{total}} = \min(0.75, \text{Penalty}_c + \text{Penalty}_a + \sum \text{Penalty}_{e_i} + \text{Penalty}_{\text{emp}} + \text{Penalty}_{\text{age}})$$
   
-  $$\text{Penalty}_a = \min(0.4, (R_a - 0.35) \cdot 0.6)$$
+  $$P_{\text{final}} = P + (1.0 - P) \cdot \text{Penalty}_{\text{total}}$$
 
-- **Combined Adjustment**:
-  
-  $$P_{\text{final}} = P + (1.0 - P) \cdot (\text{Penalty}_c + \text{Penalty}_a)$$
-
-This ensures that extreme leverage scenarios correctly sky-rocket default probability to **90.29% - 90.60%** (High/Critical Risk) even if the customer has excellent bureau credit scores.
+This resolves the low-risk bias, resulting in a highly dynamic, realistic risk distribution where safe profiles remain low risk (~2.55% PD) while risky profiles are flagged accordingly (47% - 61% PD). Extreme leverage scenarios successfully sky-rocket default probability to **75.73% - 90.60%** (High/Critical Risk) even if the customer has excellent credit ratings.
 
 ### 5.5 Auto-Recovery of Missing Cache
 Render container recycles clear local file systems. To prevent a "Simulation failed on the server" error if a user returns to a cached browser session after a server restart, `/api/simulate` runs `ensure_sample_dataset_exists()`. This dynamically rebuilds the sample dataset on the fly and runs the simulation successfully.
