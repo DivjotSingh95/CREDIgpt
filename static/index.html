@@ -290,9 +290,16 @@
         <button class="nav-btn" data-page="ask"><span class="material-symbols-outlined">chat_paste_go</span>Ask Your Data</button>
       </nav>
     </div>
-    <div class="sidebar-footer">
-      <button class="nav-btn"><span class="material-symbols-outlined">help</span>Support</button>
-      <button class="nav-btn"><span class="material-symbols-outlined">account_circle</span>Profile</button>
+    <div class="sidebar-footer" style="padding: 16px 20px;">
+      <div style="margin-bottom: 16px; border-bottom: 1px solid rgba(198,198,205,.28); padding-bottom: 12px;">
+        <label style="font-size: 10px; font-weight: 900; color: var(--outline); text-transform: uppercase; display: block; margin-bottom: 6px; letter-spacing: 0.05em;">Render Backend URL</label>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="text" id="backend-url-input" placeholder="https://..." style="flex: 1; height: 32px; font-size: 12px; padding: 0 8px; border-radius: 6px; border: 1px solid rgba(198,198,205,.6); outline: 0; background: white;" />
+          <button id="save-backend-url-btn" onclick="saveBackendUrl()" style="height: 32px; width: 32px; border: 0; border-radius: 6px; background: var(--secondary); color: white; cursor: pointer; display: grid; place-items: center; transition: background-color 0.2s;"><span class="material-symbols-outlined" style="font-size: 16px;">save</span></button>
+        </div>
+      </div>
+      <button class="nav-btn" style="min-height:36px; font-size:13px; padding: 0 12px;"><span class="material-symbols-outlined">help</span>Support</button>
+      <button class="nav-btn" style="min-height:36px; font-size:13px; padding: 0 12px;"><span class="material-symbols-outlined">account_circle</span>Profile</button>
     </div>
   </aside>
 
@@ -660,9 +667,40 @@
 <script>
   // Set this to your Render backend URL when deploying.
   // If empty, relative path is used (default for local development)
-  const API_BASE = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
-    ? ''
-    : 'https://credigpt-backend.onrender.com';
+  let savedBackendUrl = localStorage.getItem('credigpt_backend_url');
+  if (savedBackendUrl === null) {
+    savedBackendUrl = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
+      ? ''
+      : 'https://credigpt-backend.onrender.com'; // Default fallback
+  }
+  let API_BASE = savedBackendUrl;
+
+  function saveBackendUrl() {
+    const input = document.getElementById('backend-url-input');
+    const saveBtn = document.getElementById('save-backend-url-btn');
+    if (input && saveBtn) {
+      let url = input.value.trim();
+      // Remove trailing slash if present
+      if (url.endsWith('/')) {
+        url = url.slice(0, -1);
+      }
+      localStorage.setItem('credigpt_backend_url', url);
+      API_BASE = url;
+      
+      // Visual feedback: checkmark animation
+      const icon = saveBtn.querySelector('.material-symbols-outlined');
+      if (icon) {
+        icon.textContent = 'check';
+        saveBtn.style.background = 'var(--success)';
+        setTimeout(() => {
+          icon.textContent = 'save';
+          saveBtn.style.background = '';
+        }, 1500);
+      }
+      
+      loadDashboardData();
+    }
+  }
 
   let customers = [];
   let geminiApiKey = "";
@@ -1865,6 +1903,12 @@
         resContainer.style.display = 'block';
       }
     });
+  }
+
+  // Initialize the backend URL input field with current API_BASE
+  const urlInput = document.getElementById('backend-url-input');
+  if (urlInput) {
+    urlInput.value = API_BASE;
   }
 
   // Load configuration and data on boot
