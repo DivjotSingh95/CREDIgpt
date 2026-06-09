@@ -475,12 +475,18 @@
             </div>
           </div>
           
-          <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:8px;">
+          <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px;">
             <span class="muted" style="font-size:13px;">Don't have a dataset?</span>
-            <button class="btn secondary" style="min-height:36px; padding:0 16px; font-size:13px; gap:6px; border:1px solid var(--outline-variant);" onclick="loadSampleDataset()">
-              <span class="material-symbols-outlined" style="font-size:18px;">science</span>
-              Load Sample Dataset
-            </button>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="sample-dataset-select" style="padding:8px 12px; border-radius:10px; border:1px solid var(--outline-variant); font-size:13px; font-weight:800; background:var(--surface); color:var(--on-surface); height:36px; cursor:pointer;">
+                <option value="portfolio">Sample Credit Portfolio (50 Rows)</option>
+                <option value="test">Application Test Dataset (Full Schema)</option>
+              </select>
+              <button class="btn secondary" style="min-height:36px; padding:0 16px; font-size:13px; gap:6px; border:1px solid var(--outline-variant);" onclick="loadSampleDataset()">
+                <span class="material-symbols-outlined" style="font-size:18px;">science</span>
+                Load Sample
+              </button>
+            </div>
           </div>
           
           <!-- File status card -->
@@ -1796,13 +1802,16 @@
   }
 
   async function loadSampleDataset() {
+    const select = document.getElementById('sample-dataset-select');
+    const datasetType = select ? select.value : 'portfolio';
+
     const container = document.getElementById('file-status-container');
     const nameLabel = document.getElementById('uploaded-file-name');
     const sizeLabel = document.getElementById('uploaded-file-size');
     const statusLabel = document.getElementById('upload-status-label');
     const progressFill = document.getElementById('upload-progress-fill');
     
-    nameLabel.textContent = "sample_portfolio.csv";
+    nameLabel.textContent = datasetType === 'test' ? 'application_test.csv' : 'sample_portfolio.csv';
     sizeLabel.textContent = "Loading...";
     statusLabel.textContent = "Retrieving sample dataset from server...";
     progressFill.style.width = '30%';
@@ -1815,7 +1824,7 @@
     document.getElementById('processing-loader').style.display = 'none';
 
     try {
-      const res = await fetch(API_BASE + '/api/load-sample');
+      const res = await fetch(API_BASE + '/api/load-sample?type=' + datasetType);
       progressFill.style.width = '70%';
       
       if (!res.ok) {

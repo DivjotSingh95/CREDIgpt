@@ -96,8 +96,11 @@ def get_stats():
 
 
 @app.get("/api/load-sample")
-def load_sample_dataset():
-    sample_file_path = os.path.join("scratch", "sample_upload.csv")
+def load_sample_dataset(type: str = "portfolio"):
+    if type == "test":
+        sample_file_path = os.path.join("scratch", "sample_test_upload.csv")
+    else:
+        sample_file_path = os.path.join("scratch", "sample_portfolio_upload.csv")
     
     # Generate the sample file if it doesn't exist
     if not os.path.exists(sample_file_path):
@@ -136,52 +139,93 @@ def load_sample_dataset():
             print("Generating fallback mock sample CSV...")
             dummy_data = []
             for i in range(50):
-                dummy_data.append({
-                    "Applicant ID": 100001 + i,
-                    "CODE_GENDER": "M" if i % 2 == 0 else "F",
-                    "CNT_CHILDREN": i % 3,
-                    "Annual Earnings": 120000.0 + (i * 3500.0),
-                    "Loan Value": 300000.0 + (i * 12000.0),
-                    "AMT_ANNUITY": 15000.0 + (i * 450.0),
-                    "AMT_GOODS_PRICE": 280000.0 + (i * 12000.0),
-                    "NAME_INCOME_TYPE": "Working" if i % 3 != 0 else "Commercial associate",
-                    "NAME_EDUCATION_TYPE": "Secondary / secondary special" if i % 4 != 0 else "Higher education",
-                    "NAME_FAMILY_STATUS": "Married" if i % 2 == 0 else "Single",
-                    "NAME_HOUSING_TYPE": "House / apartment",
-                    "Age in Days": -12000 - (i * 120),
-                    "Employment Days": -1500 - (i * 50),
-                    "DAYS_REGISTRATION": -4000.0,
-                    "DAYS_ID_PUBLISH": -2500,
-                    "CNT_FAM_MEMBERS": (i % 3) + 2.0,
-                    "REGION_RATING_CLIENT": 2,
-                    "REGION_RATING_CLIENT_W_CITY": 2,
-                    "ORGANIZATION_TYPE": "Business Entity Type 3",
-                    "EXT_SOURCE_1": 0.45 + (i * 0.005),
-                    "EXT_SOURCE_2": 0.55 + (i * 0.002),
-                    "EXT_SOURCE_3": 0.35 + (i * 0.006),
-                    "OBS_30_CNT_SOCIAL_CIRCLE": 1.0,
-                    "DEF_30_CNT_SOCIAL_CIRCLE": 0.0,
-                    "OBS_60_CNT_SOCIAL_CIRCLE": 1.0,
-                    "DEF_60_CNT_SOCIAL_CIRCLE": 0.0,
-                    "DAYS_LAST_PHONE_CHANGE": -100.0,
-                    "AMT_REQ_CREDIT_BUREAU_HOUR": 0.0,
-                    "AMT_REQ_CREDIT_BUREAU_DAY": 0.0,
-                    "AMT_REQ_CREDIT_BUREAU_WEEK": 0.0,
-                    "AMT_REQ_CREDIT_BUREAU_MON": 0.0,
-                    "AMT_REQ_CREDIT_BUREAU_QRT": 0.0,
-                    "AMT_REQ_CREDIT_BUREAU_YEAR": 1.0
-                })
+                if type == "portfolio":
+                    dummy_data.append({
+                        "Applicant ID": 100001 + i,
+                        "CODE_GENDER": "M" if i % 2 == 0 else "F",
+                        "CNT_CHILDREN": i % 3,
+                        "Annual Earnings": 120000.0 + (i * 3500.0),
+                        "Loan Value": 300000.0 + (i * 12000.0),
+                        "AMT_ANNUITY": 15000.0 + (i * 450.0),
+                        "AMT_GOODS_PRICE": 280000.0 + (i * 12000.0),
+                        "NAME_INCOME_TYPE": "Working" if i % 3 != 0 else "Commercial associate",
+                        "NAME_EDUCATION_TYPE": "Secondary / secondary special" if i % 4 != 0 else "Higher education",
+                        "NAME_FAMILY_STATUS": "Married" if i % 2 == 0 else "Single",
+                        "NAME_HOUSING_TYPE": "House / apartment",
+                        "Age in Days": -12000 - (i * 120),
+                        "Employment Days": -1500 - (i * 50),
+                        "DAYS_REGISTRATION": -4000.0,
+                        "DAYS_ID_PUBLISH": -2500,
+                        "CNT_FAM_MEMBERS": (i % 3) + 2.0,
+                        "REGION_RATING_CLIENT": 2,
+                        "REGION_RATING_CLIENT_W_CITY": 2,
+                        "ORGANIZATION_TYPE": "Business Entity Type 3",
+                        "EXT_SOURCE_1": 0.45 + (i * 0.005),
+                        "EXT_SOURCE_2": 0.55 + (i * 0.002),
+                        "EXT_SOURCE_3": 0.35 + (i * 0.006),
+                        "OBS_30_CNT_SOCIAL_CIRCLE": 1.0,
+                        "DEF_30_CNT_SOCIAL_CIRCLE": 0.0,
+                        "OBS_60_CNT_SOCIAL_CIRCLE": 1.0,
+                        "DEF_60_CNT_SOCIAL_CIRCLE": 0.0,
+                        "DAYS_LAST_PHONE_CHANGE": -100.0,
+                        "AMT_REQ_CREDIT_BUREAU_HOUR": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_DAY": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_WEEK": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_MON": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_QRT": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_YEAR": 1.0
+                    })
+                else:
+                    dummy_data.append({
+                        "SK_ID_CURR": 100001 + i,
+                        "CODE_GENDER": "M" if i % 2 == 0 else "F",
+                        "CNT_CHILDREN": i % 3,
+                        "AMT_INCOME_TOTAL": 120000.0 + (i * 3500.0),
+                        "AMT_CREDIT": 300000.0 + (i * 12000.0),
+                        "AMT_ANNUITY": 15000.0 + (i * 450.0),
+                        "AMT_GOODS_PRICE": 280000.0 + (i * 12000.0),
+                        "NAME_INCOME_TYPE": "Working" if i % 3 != 0 else "Commercial associate",
+                        "NAME_EDUCATION_TYPE": "Secondary / secondary special" if i % 4 != 0 else "Higher education",
+                        "NAME_FAMILY_STATUS": "Married" if i % 2 == 0 else "Single",
+                        "NAME_HOUSING_TYPE": "House / apartment",
+                        "DAYS_BIRTH": -12000 - (i * 120),
+                        "DAYS_EMPLOYED": -1500 - (i * 50),
+                        "DAYS_REGISTRATION": -4000.0,
+                        "DAYS_ID_PUBLISH": -2500,
+                        "CNT_FAM_MEMBERS": (i % 3) + 2.0,
+                        "REGION_RATING_CLIENT": 2,
+                        "REGION_RATING_CLIENT_W_CITY": 2,
+                        "ORGANIZATION_TYPE": "Business Entity Type 3",
+                        "EXT_SOURCE_1": 0.45 + (i * 0.005),
+                        "EXT_SOURCE_2": 0.55 + (i * 0.002),
+                        "EXT_SOURCE_3": 0.35 + (i * 0.006),
+                        "OBS_30_CNT_SOCIAL_CIRCLE": 1.0,
+                        "DEF_30_CNT_SOCIAL_CIRCLE": 0.0,
+                        "OBS_60_CNT_SOCIAL_CIRCLE": 1.0,
+                        "DEF_60_CNT_SOCIAL_CIRCLE": 0.0,
+                        "DAYS_LAST_PHONE_CHANGE": -100.0,
+                        "AMT_REQ_CREDIT_BUREAU_HOUR": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_DAY": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_WEEK": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_MON": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_QRT": 0.0,
+                        "AMT_REQ_CREDIT_BUREAU_YEAR": 1.0
+                    })
             df = pd.DataFrame(dummy_data)
         else:
-            # Rename columns to simulate real-world uploads
-            df = df.rename(columns={
-                "SK_ID_CURR": "Applicant ID",
-                "AMT_INCOME_TOTAL": "Annual Earnings",
-                "AMT_CREDIT": "Loan Value",
-                "DAYS_BIRTH": "Age in Days",
-                "DAYS_EMPLOYED": "Employment Days",
-                "CODE_GENDER": "Gender Code"
-            })
+            if type == "portfolio":
+                # Rename columns to simulate real-world uploads
+                df = df.rename(columns={
+                    "SK_ID_CURR": "Applicant ID",
+                    "AMT_INCOME_TOTAL": "Annual Earnings",
+                    "AMT_CREDIT": "Loan Value",
+                    "DAYS_BIRTH": "Age in Days",
+                    "DAYS_EMPLOYED": "Employment Days",
+                    "CODE_GENDER": "Gender Code"
+                })
+            else:
+                # Keep target columns as is
+                pass
             
         df.to_csv(sample_file_path, index=False)
 
@@ -216,7 +260,7 @@ def load_sample_dataset():
         mappings = get_heuristic_mappings(list(df.columns), base_targets, sample_dict)
 
     return {
-        "file_name": "sample_portfolio.csv",
+        "file_name": "sample_portfolio.csv" if type == "portfolio" else "application_test.csv",
         "file_size": os.path.getsize(sample_file_path),
         "columns": list(df.columns),
         "mappings": mappings,
