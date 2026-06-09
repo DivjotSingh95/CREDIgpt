@@ -1,0 +1,21 @@
+# Ignore all Python backend files to prevent Vercel from building serverless functions
+*.py
+requirements.txt
+
+# Ignore models, databases, reports, and large assets
+*.json
+database/
+scratch/
+utils/
+pages/
+.streamlit/
+model_report.txt
+WORK_DONE_SO_FAR.md
+README.md
+
+# Ignore datasets (for safety)
+*.csv
+*.xlsx
+*.zip
+*.rar
+*.gz
