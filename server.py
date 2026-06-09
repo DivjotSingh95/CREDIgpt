@@ -477,7 +477,10 @@ def simulate_risk(req: RiskSimulationRequest):
             df[col_to_modify] = df[col_to_modify].astype(float)
             df.at[row_idx, col_to_modify] = req.income
         elif target == "AMT_CREDIT":
-            old_credit = float(df.at[row_idx, col_to_modify])
+            try:
+                old_credit = float(df.at[row_idx, col_to_modify])
+            except Exception:
+                old_credit = 0.0
             df[col_to_modify] = df[col_to_modify].astype(float)
             df.at[row_idx, col_to_modify] = req.credit
             
@@ -492,8 +495,13 @@ def simulate_risk(req: RiskSimulationRequest):
                         annuity_col = r_col if r_col in df.columns else (t_feat if t_feat in df.columns else None)
                         break
                 if annuity_col:
-                    df[annuity_col] = df[annuity_col].astype(float)
-                    df.at[row_idx, annuity_col] = float(df.at[row_idx, annuity_col]) * scale_factor
+                    try:
+                        df[annuity_col] = pd.to_numeric(df[annuity_col], errors="coerce")
+                        val = float(df.at[row_idx, annuity_col])
+                        if pd.notna(val):
+                            df.at[row_idx, annuity_col] = val * scale_factor
+                    except Exception:
+                        pass
                     
                 # Find and scale goods price
                 goods_col = None
@@ -502,8 +510,13 @@ def simulate_risk(req: RiskSimulationRequest):
                         goods_col = r_col if r_col in df.columns else (t_feat if t_feat in df.columns else None)
                         break
                 if goods_col:
-                    df[goods_col] = df[goods_col].astype(float)
-                    df.at[row_idx, goods_col] = float(df.at[row_idx, goods_col]) * scale_factor
+                    try:
+                        df[goods_col] = pd.to_numeric(df[goods_col], errors="coerce")
+                        val = float(df.at[row_idx, goods_col])
+                        if pd.notna(val):
+                            df.at[row_idx, goods_col] = val * scale_factor
+                    except Exception:
+                        pass
         elif target == "DAYS_BIRTH":
             df[col_to_modify] = df[col_to_modify].astype(float)
             df.at[row_idx, col_to_modify] = -req.age * 365.25
