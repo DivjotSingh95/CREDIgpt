@@ -412,6 +412,21 @@ class RiskSimulationRequest(BaseModel):
     ext3: float
     mappings: dict
 
+def ensure_sample_dataset_exists(type: str = "train") -> str:
+    temp_path = os.path.join("database", "temp_upload.csv")
+    if os.path.exists(temp_path):
+        return temp_path
+        
+    print(f"Temporary database cache missing. Re-initializing {type} sample dataset...")
+    try:
+        load_sample_dataset(type)
+        if os.path.exists(temp_path):
+            return temp_path
+    except Exception as e:
+        print(f"Failed to auto-recover sample dataset: {e}")
+        
+    return ""
+
 @app.post("/api/simulate")
 def simulate_risk(req: RiskSimulationRequest):
     # Flatten mappings if nested (supports both flat and dict-of-dict formats)
@@ -431,7 +446,12 @@ def simulate_risk(req: RiskSimulationRequest):
         if not os.path.exists(temp_path):
             temp_path = "application_test.csv"
         if not os.path.exists(temp_path):
-            raise HTTPException(status_code=400, detail="No dataset loaded to run simulation.")
+            # Try to dynamically recover train sample first, then portfolio
+            temp_path = ensure_sample_dataset_exists("train")
+            if not temp_path:
+                temp_path = ensure_sample_dataset_exists("portfolio")
+            if not temp_path:
+                raise HTTPException(status_code=400, detail="No dataset loaded to run simulation.")
 
     try:
         df = pd.read_csv(temp_path)
@@ -448,15 +468,15 @@ def simulate_risk(req: RiskSimulationRequest):
                 id_col = target
             break
 
-    if id_col is None:
-        id_col = "SK_ID_CURR" if "SK_ID_CURR" in df.columns else df.columns[0]
+    if id_col is None or id_col not in df.columns:
+        id_col = "SK_ID_CURR" if "SK_ID_CURR" in df.columns else (df.columns[0] if len(df.columns) > 0 else "")
 
     # Find row
-    row_mask = df[id_col].astype(str) == str(req.customer_id)
-    if not row_mask.any():
-        row_idx = 0
-    else:
-        row_idx = df[row_mask].index[0]
+    row_idx = 0
+    if id_col and id_col in df.columns:
+        row_mask = df[id_col].astype(str) == str(req.customer_id)
+        if row_mask.any():
+            row_idx = df[row_mask].index[0]
 
     # Map request values back to raw columns using the mappings
     for raw_col, target in flat_mappings.items():
