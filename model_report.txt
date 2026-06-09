@@ -1,0 +1,56 @@
+============================================================
+XGBoost Default Prediction Model Report
+============================================================
+
+Dataset
+----------------------------------------
+Features file: selected_features.csv
+Target file:   application_train.csv
+Feature count: 32
+Test default rate: 8.07%
+
+Model Performance (hold-out test set)
+----------------------------------------
+ROC-AUC:   0.7589
+Accuracy:  0.7198
+Precision: 0.1735
+Recall:    0.6568
+F1 Score:  0.2745
+Best threshold (Youden): 0.4882
+
+Confusion Matrix
+----------------------------------------
+                 Predicted 0   Predicted 1
+Actual 0 (no default)      41007      15531
+Actual 1 (default)          1704       3261
+
+Classification Report
+----------------------------------------
+                precision    recall  f1-score   support
+
+No Default (0)       0.96      0.73      0.83     56538
+   Default (1)       0.17      0.66      0.27      4965
+
+      accuracy                           0.72     61503
+     macro avg       0.57      0.69      0.55     61503
+  weighted avg       0.90      0.72      0.78     61503
+
+Top 15 Feature Importances (gain)
+----------------------------------------
+EXT_SOURCE_3                        0.1033
+EXT_SOURCE_2                        0.0939
+NAME_EDUCATION_TYPE                 0.0595
+CODE_GENDER                         0.0580
+EXT_SOURCE_1                        0.0439
+AMT_REQ_CREDIT_BUREAU_DAY           0.0357
+REGION_RATING_CLIENT_W_CITY         0.0338
+AMT_REQ_CREDIT_BUREAU_WEEK          0.0329
+NAME_INCOME_TYPE                    0.0298
+DAYS_BIRTH                          0.0294
+AMT_CREDIT                          0.0293
+AMT_GOODS_PRICE                     0.0292
+DEF_60_CNT_SOCIAL_CIRCLE            0.0292
+DAYS_EMPLOYED                       0.0292
+AMT_ANNUITY                         0.0271
+
+============================================================
