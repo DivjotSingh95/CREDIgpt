@@ -7,12 +7,14 @@ def main():
     base_url = "http://127.0.0.1:8000"
     
     # 1. Create a sample CSV file to upload
-    test_csv_path = "application_test.csv"
+    test_csv_path = "application_train.csv"
     if not os.path.exists(test_csv_path):
-        print(f"Error: {test_csv_path} not found.")
+        test_csv_path = "application_test.csv"
+    if not os.path.exists(test_csv_path):
+        print(f"Error: Neither application_train.csv nor application_test.csv found.")
         return
         
-    print("Creating sample upload CSV...")
+    print(f"Creating sample upload CSV from {test_csv_path}...")
     df = pd.read_csv(test_csv_path, nrows=20)
     # Rename some columns to simulate real-world uploads needing mapping
     df = df.rename(columns={

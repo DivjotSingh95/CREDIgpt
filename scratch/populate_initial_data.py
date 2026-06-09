@@ -17,12 +17,14 @@ def populate_initial_data():
     print("Populating initial dashboard data...")
 
     # 1. Load application test sample
-    test_path = project_dir / "application_test.csv"
+    test_path = project_dir / "application_train.csv"
     if not test_path.exists():
-        print(f"Error: {test_path} not found.")
+        test_path = project_dir / "application_test.csv"
+    if not test_path.exists():
+        print(f"Error: Neither application_train.csv nor application_test.csv found.")
         return
 
-    print("Loading application_test.csv sample...")
+    print(f"Loading {test_path.name} sample...")
     df = pd.read_csv(test_path, nrows=50)
 
     # 2. Map columns using heuristics

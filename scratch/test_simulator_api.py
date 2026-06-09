@@ -129,9 +129,9 @@ def test_simulator_for_type(dataset_type):
 
 def main():
     success_portfolio = test_simulator_for_type("portfolio")
-    success_test = test_simulator_for_type("test")
+    success_train = test_simulator_for_type("train")
     
-    if success_portfolio and success_test:
+    if success_portfolio and success_train:
         print("\n=========================================")
         print("SUCCESS: Simulator API fully validated!")
         print("=========================================")

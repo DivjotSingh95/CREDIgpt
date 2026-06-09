@@ -61,11 +61,13 @@ def get_api_key() -> str:
     return os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or ""
 
 def generate_fallback_stats() -> dict:
-    print("Generating fallback dashboard stats from test sample...")
-    test_path = os.path.join(os.getcwd(), "application_test.csv")
-    if os.path.exists(test_path):
+    print("Generating fallback dashboard stats from train sample...")
+    train_path = os.path.join(os.getcwd(), "application_train.csv")
+    if not os.path.exists(train_path):
+        train_path = os.path.join(os.getcwd(), "application_test.csv")
+    if os.path.exists(train_path):
         try:
-            df = pd.read_csv(test_path, nrows=50)
+            df = pd.read_csv(train_path, nrows=50)
             base_targets = get_base_target_columns()
             full_mappings = get_heuristic_mappings(list(df.columns), base_targets, {})
             confirmed_mappings = {col: full_mappings[col]["model_feature"] for col in df.columns}
@@ -97,8 +99,8 @@ def get_stats():
 
 @app.get("/api/load-sample")
 def load_sample_dataset(type: str = "portfolio"):
-    if type == "test":
-        sample_file_path = os.path.join("scratch", "sample_test_upload.csv")
+    if type in ("train", "test"):
+        sample_file_path = os.path.join("scratch", f"sample_{type}_upload.csv")
     else:
         sample_file_path = os.path.join("scratch", "sample_portfolio_upload.csv")
     
@@ -123,16 +125,28 @@ def load_sample_dataset(type: str = "portfolio"):
                 print(f"Failed to read selected_features_processed.csv: {e}")
                 df = None
                 
-        if df is None and os.path.exists(test_csv_path):
-            try:
-                df = pd.read_csv(test_csv_path, nrows=50)
-            except Exception:
-                pass
-        if df is None and os.path.exists(train_csv_path):
-            try:
-                df = pd.read_csv(train_csv_path, nrows=50)
-            except Exception:
-                pass
+        if type == "train":
+            if df is None and os.path.exists(train_csv_path):
+                try:
+                    df = pd.read_csv(train_csv_path, nrows=50)
+                except Exception:
+                    pass
+            if df is None and os.path.exists(test_csv_path):
+                try:
+                    df = pd.read_csv(test_csv_path, nrows=50)
+                except Exception:
+                    pass
+        else:
+            if df is None and os.path.exists(test_csv_path):
+                try:
+                    df = pd.read_csv(test_csv_path, nrows=50)
+                except Exception:
+                    pass
+            if df is None and os.path.exists(train_csv_path):
+                try:
+                    df = pd.read_csv(train_csv_path, nrows=50)
+                except Exception:
+                    pass
                 
         if df is None:
             # Generate dummy dataframe with essential columns
@@ -260,7 +274,7 @@ def load_sample_dataset(type: str = "portfolio"):
         mappings = get_heuristic_mappings(list(df.columns), base_targets, sample_dict)
 
     return {
-        "file_name": "sample_portfolio.csv" if type == "portfolio" else "application_test.csv",
+        "file_name": "sample_portfolio.csv" if type == "portfolio" else (f"application_{type}.csv" if type in ("train", "test") else "application_train.csv"),
         "file_size": os.path.getsize(sample_file_path),
         "columns": list(df.columns),
         "mappings": mappings,
@@ -412,8 +426,10 @@ def simulate_risk(req: RiskSimulationRequest):
     if not os.path.exists(temp_path):
         temp_path = os.path.join("database", "original_uploaded.csv")
     if not os.path.exists(temp_path):
-        # Fallback to application_test.csv if no upload is active
-        temp_path = "application_test.csv"
+        # Fallback to application_train.csv if no upload is active
+        temp_path = "application_train.csv"
+        if not os.path.exists(temp_path):
+            temp_path = "application_test.csv"
         if not os.path.exists(temp_path):
             raise HTTPException(status_code=400, detail="No dataset loaded to run simulation.")
 

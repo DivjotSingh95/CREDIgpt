@@ -25,10 +25,12 @@ def main():
     data_path = project_dir / "database" / "engineered_features.csv"
     if not data_path.exists():
         print(f"Error: {data_path} not found. Running fallback initialization...")
-        # Fall back to application_test.csv sample if no uploaded data exists yet
-        test_path = project_dir / "application_test.csv"
+        # Fall back to application_train.csv sample if no uploaded data exists yet
+        test_path = project_dir / "application_train.csv"
         if not test_path.exists():
-            print("Error: application_test.csv not found either.")
+            test_path = project_dir / "application_test.csv"
+        if not test_path.exists():
+            print("Error: Neither application_train.csv nor application_test.csv found.")
             return
         df = pd.read_csv(test_path, nrows=500)  # load a larger sample for fallback
         from utils.mapping import get_base_target_columns, get_heuristic_mappings
