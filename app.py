@@ -136,12 +136,12 @@ def run_predictions(df: pd.DataFrame, model: xgb.XGBClassifier) -> dict:
         row_ext2 = safe_float(df.iloc[i]["EXT_SOURCE_2"], 0.5) if "EXT_SOURCE_2" in df.columns else 0.5
         row_ext3 = safe_float(df.iloc[i]["EXT_SOURCE_3"], 0.5) if "EXT_SOURCE_3" in df.columns else 0.5
         
-        # If actual values are missing or zero, default display to 0.5 midpoint
-        if np.isnan(row_ext1) or row_ext1 == 0.0:
+        # If actual values are missing, default display to 0.5 midpoint
+        if np.isnan(row_ext1):
             row_ext1 = 0.5
-        if np.isnan(row_ext2) or row_ext2 == 0.0:
+        if np.isnan(row_ext2):
             row_ext2 = 0.5
-        if np.isnan(row_ext3) or row_ext3 == 0.0:
+        if np.isnan(row_ext3):
             row_ext3 = 0.5
             
         risk_lvl = "High" if row_pd >= 0.15 else "Medium" if row_pd >= 0.07 else "Low"

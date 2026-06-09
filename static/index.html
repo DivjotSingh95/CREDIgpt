@@ -657,6 +657,69 @@
             </div>
           </div>
           
+          <!-- What-If Risk Simulator -->
+          <div class="card" style="margin-top:24px; border:1px solid rgba(75, 65, 225, 0.22); background: linear-gradient(145deg, var(--surface), rgba(75, 65, 225, 0.03));" id="risk-simulator-card">
+            <h3 class="card-title" style="display:flex; align-items:center; gap:8px;">
+              <span class="material-symbols-outlined" style="color:var(--primary); font-variation-settings:'FILL' 1;">science</span>
+              What-If Risk Simulator
+            </h3>
+            <p class="card-subtitle" style="margin-bottom:18px;">Adjust this applicant's stats to simulate how the model predictions recalculate in real-time.</p>
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div>
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">Annual Income ($)</label>
+                <input type="number" id="sim-income" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--outline-variant); margin-top:6px; font-weight:700; color:var(--on-surface); background:var(--surface);" />
+              </div>
+              <div>
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">Credit Amount ($)</label>
+                <input type="number" id="sim-credit" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--outline-variant); margin-top:6px; font-weight:700; color:var(--on-surface); background:var(--surface);" />
+              </div>
+              <div>
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">Age (Years)</label>
+                <input type="number" id="sim-age" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--outline-variant); margin-top:6px; font-weight:700; color:var(--on-surface); background:var(--surface);" />
+              </div>
+              <div>
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">Employment (Years)</label>
+                <input type="number" id="sim-employment" step="0.1" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--outline-variant); margin-top:6px; font-weight:700; color:var(--on-surface); background:var(--surface);" />
+              </div>
+            </div>
+            
+            <div style="margin-top:16px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">External Source 1 Rating</label>
+                <span id="sim-ext1-val" style="font-size:12px; font-weight:800; color:var(--primary);">0.50</span>
+              </div>
+              <input type="range" id="sim-ext1" min="0.01" max="0.99" step="0.01" style="width:100%; cursor:pointer;" oninput="document.getElementById('sim-ext1-val').textContent = parseFloat(this.value).toFixed(2)" />
+            </div>
+
+            <div style="margin-top:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">External Source 2 Rating</label>
+                <span id="sim-ext2-val" style="font-size:12px; font-weight:800; color:var(--primary);">0.50</span>
+              </div>
+              <input type="range" id="sim-ext2" min="0.01" max="0.99" step="0.01" style="width:100%; cursor:pointer;" oninput="document.getElementById('sim-ext2-val').textContent = parseFloat(this.value).toFixed(2)" />
+            </div>
+
+            <div style="margin-top:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <label style="font-size:11px; font-weight:700; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:0.5px;">External Source 3 Rating</label>
+                <span id="sim-ext3-val" style="font-size:12px; font-weight:800; color:var(--primary);">0.50</span>
+              </div>
+              <input type="range" id="sim-ext3" min="0.01" max="0.99" step="0.01" style="width:100%; cursor:pointer;" oninput="document.getElementById('sim-ext3-val').textContent = parseFloat(this.value).toFixed(2)" />
+            </div>
+            
+            <div style="display:flex; gap:12px; margin-top:24px;">
+              <button id="btn-run-simulation" class="btn primary" style="flex:1; min-height:40px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <span class="material-symbols-outlined" style="font-size:20px;">play_arrow</span>
+                Run Simulator
+              </button>
+              <button id="btn-reset-simulation" class="btn secondary" style="min-height:40px; padding:0 16px; font-weight:700;">
+                Reset
+              </button>
+            </div>
+          </div>
+
+          
           <div class="card" style="margin-top:24px;">
             <div class="card-head"><h3 class="card-title">Behavioral Timeline & Risk Profile</h3><span class="badge">Historical Profile</span></div>
             <div class="timeline">
@@ -916,6 +979,38 @@
     } else {
       document.getElementById('cust-profile-strength').textContent = "Excellent external credit rating (Mean score: " + extMean.toFixed(2) + ") and stable background ensure a very safe risk profile.";
       document.getElementById('cust-profile-amplifier').textContent = "No significant default risk signals found in behavioral or demographic records.";
+    }
+
+    // Sync What-If Simulator fields
+    const simInc = document.getElementById('sim-income');
+    if (simInc) simInc.value = Math.round(c.income || 0);
+    const simCred = document.getElementById('sim-credit');
+    if (simCred) simCred.value = Math.round(c.credit || 0);
+    const simAge = document.getElementById('sim-age');
+    if (simAge) simAge.value = Math.round(c.age || 0);
+    const simEmp = document.getElementById('sim-employment');
+    if (simEmp) simEmp.value = parseFloat((c.employment || 0).toFixed(1));
+    
+    const simExt1 = document.getElementById('sim-ext1');
+    if (simExt1) {
+      simExt1.value = c.ext1 || 0.5;
+      document.getElementById('sim-ext1-val').textContent = (c.ext1 || 0.5).toFixed(2);
+    }
+    const simExt2 = document.getElementById('sim-ext2');
+    if (simExt2) {
+      simExt2.value = c.ext2 || 0.5;
+      document.getElementById('sim-ext2-val').textContent = (c.ext2 || 0.5).toFixed(2);
+    }
+    const simExt3 = document.getElementById('sim-ext3');
+    if (simExt3) {
+      simExt3.value = c.ext3 || 0.5;
+      document.getElementById('sim-ext3-val').textContent = (c.ext3 || 0.5).toFixed(2);
+    }
+    
+    // Store selected customer ID for simulation
+    const simCard = document.getElementById('risk-simulator-card');
+    if (simCard) {
+      simCard.dataset.selectedCustomerId = c.id;
     }
   }
 
@@ -1986,6 +2081,130 @@
   const urlInput = document.getElementById('backend-url-input');
   if (urlInput) {
     urlInput.value = API_BASE;
+  }
+
+  // What-If Simulation Event Listeners
+  const btnRunSim = document.getElementById('btn-run-simulation');
+  if (btnRunSim) {
+    btnRunSim.addEventListener('click', async () => {
+      const card = document.getElementById('risk-simulator-card');
+      const custId = parseInt(card.dataset.selectedCustomerId);
+      if (!custId) return;
+
+      // Get mappings
+      const mappings = datasetSummary ? datasetSummary.mappings : null;
+      if (!mappings) {
+        alert("No active schema mappings found. Please upload a dataset first.");
+        return;
+      }
+
+      // Show loader on the button
+      const originalText = btnRunSim.innerHTML;
+      btnRunSim.disabled = true;
+      btnRunSim.innerHTML = '<span class="material-symbols-outlined" style="font-size:20px; animation:spin 1.2s linear infinite; display:inline-block; vertical-align:middle; margin-right:6px;">sync</span> Running...';
+
+      try {
+        const payload = {
+          customer_id: custId,
+          income: parseFloat(document.getElementById('sim-income').value || 0),
+          credit: parseFloat(document.getElementById('sim-credit').value || 0),
+          age: parseFloat(document.getElementById('sim-age').value || 0),
+          employment: parseFloat(document.getElementById('sim-employment').value || 0),
+          ext1: parseFloat(document.getElementById('sim-ext1').value || 0.5),
+          ext2: parseFloat(document.getElementById('sim-ext2').value || 0.5),
+          ext3: parseFloat(document.getElementById('sim-ext3').value || 0.5),
+          mappings: mappings
+        };
+
+        const res = await fetch(API_BASE + "/api/simulate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error("Simulation failed on the server.");
+        }
+
+        const result = await res.json();
+        if (result.success && result.profile) {
+          updateSimulatedUI(result.profile);
+        }
+      } catch (err) {
+        alert("Error running simulator: " + err.message);
+      } finally {
+        btnRunSim.disabled = false;
+        btnRunSim.innerHTML = originalText;
+      }
+    });
+  }
+
+  const btnResetSim = document.getElementById('btn-reset-simulation');
+  if (btnResetSim) {
+    btnResetSim.addEventListener('click', () => {
+      const card = document.getElementById('risk-simulator-card');
+      const custId = parseInt(card.dataset.selectedCustomerId);
+      if (custId) {
+        selectCustomer(custId);
+      }
+    });
+  }
+
+  function updateSimulatedUI(c) {
+    // Update texts in profile layout
+    document.getElementById('cust-profile-income').textContent = '$' + Number(c.income).toLocaleString(undefined, {maximumFractionDigits:0});
+    document.getElementById('cust-profile-credit').textContent = '$' + Number(c.credit).toLocaleString(undefined, {maximumFractionDigits:0});
+    document.getElementById('cust-profile-age').textContent = Math.round(c.age || 0) + ' years';
+    document.getElementById('cust-profile-employment').textContent = (c.employment || 0).toFixed(1) + ' years';
+
+    const pdVal = c.pd * 100;
+    document.getElementById('cust-profile-pd').textContent = pdVal.toFixed(1) + '%';
+    document.getElementById('cust-profile-risk-level').textContent = c.risk_level.toUpperCase() + ' RISK';
+
+    // Update risk chip
+    const chip = document.getElementById('cust-profile-risk-chip');
+    chip.textContent = c.risk_level.toUpperCase() + ' RISK';
+
+    // Set colors
+    chip.style.background = c.risk_level === 'High' ? 'var(--error-container)' : c.risk_level === 'Medium' ? 'rgba(217,119,6,0.15)' : 'rgba(5,150,105,0.15)';
+    chip.style.color = c.risk_level === 'High' ? 'var(--error)' : c.risk_level === 'Medium' ? 'var(--amber)' : 'var(--success)';
+
+    const scoreText = document.getElementById('cust-profile-pd');
+    scoreText.style.color = c.risk_level === 'High' ? 'var(--error)' : c.risk_level === 'Medium' ? 'var(--amber)' : 'var(--success)';
+
+    // Update risk drivers
+    const extMean = ((c.ext1 || 0.5) + (c.ext2 || 0.5) + (c.ext3 || 0.5)) / 3;
+    const extPct = Math.round((1 - extMean) * 100);
+    const extLabel = extMean > 0.6 ? 'Low Risk' : extMean > 0.35 ? 'Moderate' : 'Critical';
+    document.getElementById('driver-ext-pct').style.setProperty('--w', extPct + '%');
+    document.getElementById('driver-ext-pct').style.background = extMean > 0.6 ? 'var(--success)' : extMean > 0.35 ? 'var(--amber)' : 'var(--error)';
+    document.getElementById('driver-ext-label').textContent = extLabel;
+    document.getElementById('driver-ext-label').style.color = extMean > 0.6 ? 'var(--success)' : extMean > 0.35 ? 'var(--amber)' : 'var(--error)';
+
+    const cir = c.credit / (c.income || 1);
+    const cirPct = Math.min(100, Math.round(cir * 15));
+    const cirLabel = cir < 2.0 ? 'Low Risk' : cir < 4.5 ? 'Moderate' : 'Critical';
+    document.getElementById('driver-cir-pct').style.setProperty('--w', cirPct + '%');
+    document.getElementById('driver-cir-pct').style.background = cir < 2.0 ? 'var(--success)' : cir < 4.5 ? 'var(--amber)' : 'var(--error)';
+    document.getElementById('driver-cir-label').textContent = cirLabel;
+    document.getElementById('driver-cir-label').style.color = cir < 2.0 ? 'var(--success)' : cir < 4.5 ? 'var(--amber)' : 'var(--error)';
+
+    document.getElementById('driver-pd-pct').style.setProperty('--w', pdVal.toFixed(0) + '%');
+    document.getElementById('driver-pd-pct').style.background = pdVal >= 15 ? 'var(--error)' : pdVal >= 7 ? 'var(--amber)' : 'var(--success)';
+    document.getElementById('driver-pd-label').textContent = c.risk_level + ' Risk';
+    document.getElementById('driver-pd-label').style.color = pdVal >= 15 ? 'var(--error)' : pdVal >= 7 ? 'var(--amber)' : 'var(--success)';
+
+    // Strengths and Amplifiers
+    if (c.risk_level === 'High') {
+      document.getElementById('cust-profile-strength').textContent = "Moderate income and active loan repayments are positive factors.";
+      document.getElementById('cust-profile-amplifier').textContent = "Critical default probability (" + pdVal.toFixed(1) + "%) driven by low external bureau ratings and high credit utilization.";
+    } else if (c.risk_level === 'Medium') {
+      document.getElementById('cust-profile-strength').textContent = "Customer age and stable employment duration provide positive default resistance.";
+      document.getElementById('cust-profile-amplifier').textContent = "Elevated risk index due to moderate external credit checks and loan size.";
+    } else {
+      document.getElementById('cust-profile-strength').textContent = "Excellent external credit rating (Mean score: " + extMean.toFixed(2) + ") and stable background ensure a very safe risk profile.";
+      document.getElementById('cust-profile-amplifier').textContent = "No significant default risk signals found in behavioral or demographic records.";
+    }
   }
 
   // Load configuration and data on boot

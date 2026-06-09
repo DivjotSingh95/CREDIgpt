@@ -312,6 +312,7 @@ def process_mappings(confirmation: MappingConfirmation):
         raise HTTPException(status_code=500, detail=f"Predictions failed: {str(e)}")
 
     # Cache and persist stats to disk
+    stats["mappings"] = confirmation.mappings
     stats_path = os.path.join("database", "dashboard_stats.json")
     try:
         with open(stats_path, "w", encoding="utf-8") as f:
@@ -340,6 +341,107 @@ def process_mappings(confirmation: MappingConfirmation):
         "rows_stored": rows_stored if db_success else len(df),
         "columns_count": len(engineered_df.columns),
         "upload_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+class RiskSimulationRequest(BaseModel):
+    customer_id: int
+    income: float
+    credit: float
+    age: float
+    employment: float
+    ext1: float
+    ext2: float
+    ext3: float
+    mappings: dict
+
+@app.post("/api/simulate")
+def simulate_risk(req: RiskSimulationRequest):
+    temp_path = os.path.join("database", "temp_upload.csv")
+    if not os.path.exists(temp_path):
+        temp_path = os.path.join("database", "original_uploaded.csv")
+    if not os.path.exists(temp_path):
+        # Fallback to application_test.csv if no upload is active
+        temp_path = "application_test.csv"
+        if not os.path.exists(temp_path):
+            raise HTTPException(status_code=400, detail="No dataset loaded to run simulation.")
+
+    try:
+        df = pd.read_csv(temp_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read dataset for simulation: {e}")
+
+    # Find raw column mapped to SK_ID_CURR
+    id_col = None
+    for raw_col, target in req.mappings.items():
+        if target == "SK_ID_CURR":
+            id_col = raw_col
+            break
+
+    if id_col is None:
+        id_col = "SK_ID_CURR" if "SK_ID_CURR" in df.columns else df.columns[0]
+
+    # Find row
+    row_mask = df[id_col].astype(str) == str(req.customer_id)
+    if not row_mask.any():
+        row_idx = 0
+    else:
+        row_idx = df[row_mask].index[0]
+
+    # Map request values back to raw columns using the mappings
+    for raw_col, target in req.mappings.items():
+        if not target:
+            continue
+        if target == "AMT_INCOME_TOTAL":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = req.income
+        elif target == "AMT_CREDIT":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = req.credit
+        elif target == "DAYS_BIRTH":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = -req.age * 365.25
+        elif target == "DAYS_EMPLOYED":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = -req.employment * 365.25
+        elif target == "EXT_SOURCE_1":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = req.ext1
+        elif target == "EXT_SOURCE_2":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = req.ext2
+        elif target == "EXT_SOURCE_3":
+            df[raw_col] = df[raw_col].astype(float)
+            df.at[row_idx, raw_col] = req.ext3
+
+    # Run feature engineering
+    try:
+        _, _, engineered_df = run_feature_engineering_pipeline(df, req.mappings)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Feature engineering failed in simulation: {str(e)}")
+
+    # Run prediction
+    model = load_model()
+    if model is None:
+        raise HTTPException(status_code=500, detail="XGBoost model not found.")
+
+    try:
+        stats = run_predictions(engineered_df, model)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction failed in simulation: {str(e)}")
+
+    # Find the updated profile for our target customer ID
+    updated_profile = None
+    for p in stats["customer_profiles"]:
+        if p["id"] == req.customer_id:
+            updated_profile = p
+            break
+            
+    if not updated_profile:
+        updated_profile = stats["customer_profiles"][row_idx] if row_idx < len(stats["customer_profiles"]) else stats["customer_profiles"][0]
+
+    return {
+        "success": True,
+        "profile": updated_profile
     }
 
 class ChatRequest(BaseModel):
