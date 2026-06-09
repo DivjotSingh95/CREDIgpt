@@ -240,16 +240,45 @@
     .progress { height: 8px; border-radius: 999px; background: var(--surface-container); overflow: hidden; }
     .progress span { display: block; height: 100%; border-radius: inherit; background: var(--secondary); width: var(--w); }
 
+    .mobile-menu-btn, .mobile-close-btn { display: none; }
+
     @media (max-width: 1100px) {
-      .sidebar { position: fixed; transform: translateX(-280px); z-index: 100; }
-      .sidebar:hover { transform: translateX(0); }
-      .topbar { position: fixed; left: 0; width: 100%; }
+      .sidebar { position: fixed; transform: translateX(-280px) !important; z-index: 1000; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+      .sidebar.active { transform: translateX(0) !important; }
+      .sidebar:hover { transform: translateX(-280px); } /* Disable hover trigger on touchscreens */
+      .topbar { position: fixed; left: 0; width: 100%; padding: 0 16px; justify-content: flex-start; gap: 12px; }
       main { margin-left: 0; padding-top: 88px; }
       .grid-12, .upload-layout, .profile-grid, .chat-layout, .node-section { grid-template-columns: 1fr; }
       .hero-copy, .hero-visual, .span-8, .span-7, .span-6, .span-5, .span-4, .span-3, .span-12 { grid-column: span 1; }
       .stats, .kpi-grid, .mini-kpis, .settings-grid { grid-template-columns: 1fr; }
       .top-links { display: none; }
-      .search { width: 52vw; }
+      .search { flex: 1; max-width: 280px; width: auto; }
+      .mobile-menu-btn { display: grid; }
+      .mobile-close-btn { display: grid; width: 36px; height: 36px; border-radius: 50%; place-items: center; border: 0; background: transparent; color: var(--on-surface-variant); cursor: pointer; }
+      .mobile-close-btn:hover { background: var(--surface-container-high); }
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 80px 12px 24px; }
+      .card, .glass-card { padding: 14px; }
+      .display { font-size: 28px !important; line-height: 36px !important; margin-bottom: 12px; }
+      .lead { font-size: 14px !important; line-height: 20px !important; margin-bottom: 18px; }
+      .page-title { font-size: 24px !important; line-height: 32px !important; }
+      .stats, .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+      .stat-card, .kpi { padding: 12px !important; min-height: 120px !important; gap: 8px !important; }
+      .metric-value, .tiny-value { font-size: 20px !important; line-height: 28px !important; }
+      .metric-label, .tiny-title { font-size: 11px !important; }
+      .kbd { display: none !important; }
+      .chat-layout { height: auto !important; border: 0 !important; }
+      .chat-left { height: 400px !important; }
+      .chat-right { height: 350px !important; border-top: 1px solid rgba(198,198,205,.22) !important; padding: 16px !important; }
+      .upload-card { min-height: 150px !important; padding: 16px !important; }
+      .upload-title { font-size: 14px !important; }
+      .upload-icon { width: 44px !important; height: 44px !important; margin: 0 auto 10px !important; }
+      .upload-icon span { font-size: 24px !important; line-height: 44px !important; }
+      .profile-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+      #overview-snapshot-container { max-width: 100% !important; margin-top: 18px !important; }
+      #overview-snapshot-table th, #overview-snapshot-table td { padding: 8px 6px !important; font-size: 11px !important; }
     }
 
     @keyframes spin {
@@ -277,9 +306,12 @@
 <div class="app-shell">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-row">
-        <div class="brand-mark"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">security</span></div>
-        <div><div class="brand-title">CREDIgpt</div><span class="brand-tier">AI Credit Risk</span></div>
+      <div class="brand-row" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="brand-mark"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">security</span></div>
+          <div><div class="brand-title">CREDIgpt</div><span class="brand-tier">AI Credit Risk</span></div>
+        </div>
+        <button class="mobile-close-btn" onclick="toggleMobileSidebar()"><span class="material-symbols-outlined">close</span></button>
       </div>
       <nav class="nav" id="nav">
         <button class="nav-btn active" data-page="overview"><span class="material-symbols-outlined">dashboard</span>Overview</button>
@@ -304,6 +336,7 @@
   </aside>
 
   <header class="topbar">
+    <button class="icon-btn mobile-menu-btn" onclick="toggleMobileSidebar()"><span class="material-symbols-outlined">menu</span></button>
     <div class="search"><span class="material-symbols-outlined" style="cursor:pointer;" onclick="handleGlobalSearch(event)">search</span><input id="global-search" placeholder="Search Risk Profiles (Enter ID)..." onkeydown="handleGlobalSearch(event)" /><span class="kbd">Enter</span></div>
     <div class="top-actions">
       <span style="font-size:13px;font-weight:700;color:var(--on-surface-variant);"><span id="header-status-badge"><span class="badge" style="color:var(--amber);background:rgba(217,119,6,.12);">No Data</span></span></span>
@@ -715,7 +748,13 @@
   
   let tempUploadedFileInfo = null;
     
-  
+  function toggleMobileSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+      sidebar.classList.toggle('active');
+    }
+  }
+    
   function performGlobalSearch(query) {
     if (!query) return;
     
@@ -921,6 +960,11 @@
     const pageId = btn.dataset.page;
     document.querySelectorAll('.nav-btn[data-page]').forEach(b => b.classList.toggle('active', b === btn));
     document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === pageId));
+    
+    // Close mobile sidebar drawer on navigation
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.classList.remove('active');
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
