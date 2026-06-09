@@ -91,15 +91,9 @@ def get_config():
 
 @app.get("/api/stats")
 def get_stats():
-    stats_path = os.path.join("database", "dashboard_stats.json")
-    if os.path.exists(stats_path) and os.path.getsize(stats_path) > 0:
-        try:
-            with open(stats_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    # Return empty response instead of fallback generation so app starts fresh
+    # Return empty response so app starts fresh. Individual user sessions use sessionStorage.
     return {}
+
 
 @app.get("/api/load-sample")
 def load_sample_dataset():
@@ -350,6 +344,7 @@ def process_mappings(confirmation: MappingConfirmation):
 
 class ChatRequest(BaseModel):
     message: str
+    stats: dict = None
 
 def get_local_fallback_chat_response(message: str, stats: dict) -> str:
     message_lower = message.lower()
@@ -429,19 +424,18 @@ def get_local_fallback_chat_response(message: str, stats: dict) -> str:
 
 @app.post("/api/chat")
 def chat_with_data(req: ChatRequest):
-    # Load cached stats
-    stats = {}
-    stats_path = os.path.join("database", "dashboard_stats.json")
-    if os.path.exists(stats_path) and os.path.getsize(stats_path) > 0:
-        try:
-            with open(stats_path, "r", encoding="utf-8") as f:
-                stats = json.load(f)
-        except Exception:
-            pass
-            
-    if not stats:
-        # Generate stats from application_test.csv if missing
-        stats = generate_fallback_stats() or {}
+    # Use stats passed in the request (supports frontend session isolation)
+    stats = req.stats
+    
+    if not stats or not stats.get("total_customers"):
+        # No stats provided or empty stats in the session
+        msg = ("Welcome! I am CREDIgpt, your credit risk intelligence assistant. "
+               "Currently, no active portfolio dataset is loaded in your session. "
+               "Please navigate to the 'Upload Dataset' tab to upload a portfolio or load the sample dataset. "
+               "Once loaded, I will be able to answer questions about default rates, risk distributions, "
+               "high-risk customers, and specific customer profiles in your portfolio.")
+        return {"response": msg}
+
         
     api_key = get_api_key()
     if not api_key:

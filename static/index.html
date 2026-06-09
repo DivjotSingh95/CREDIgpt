@@ -1034,10 +1034,20 @@
     messages.scrollTop = messages.scrollHeight;
     
     try {
+      const cachedStats = sessionStorage.getItem('credigpt_stats');
+      let statsPayload = null;
+      if (cachedStats) {
+        try {
+          statsPayload = JSON.parse(cachedStats);
+        } catch (e) {
+          console.error("Error parsing cached stats for chat:", e);
+        }
+      }
+      
       const res = await fetch(API_BASE + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
+        body: JSON.stringify({ message: msg, stats: statsPayload })
       });
       if (!res.ok) {
         throw new Error("Server error: " + res.statusText);
@@ -1478,9 +1488,22 @@
 
   async function loadDashboardData() {
     try {
-      const statsRes = await fetch(API_BASE + '/api/stats');
+      let stats = null;
+      const cachedStats = sessionStorage.getItem('credigpt_stats');
+      if (cachedStats) {
+        try {
+          stats = JSON.parse(cachedStats);
+        } catch (e) {
+          console.error("Error parsing cached stats:", e);
+        }
+      }
+
+      if (!stats) {
+        const statsRes = await fetch(API_BASE + '/api/stats');
+        stats = await statsRes.json();
+      }
+
       const configRes = await fetch(API_BASE + '/api/config');
-      const stats = await statsRes.json();
       const config = await configRes.json();
 
       if (config && config.gemini_api_key) {
@@ -1898,6 +1921,10 @@
         }
         
         const result = await res.json();
+        
+        if (result.stats) {
+          sessionStorage.setItem('credigpt_stats', JSON.stringify(result.stats));
+        }
         
         loaderSubtitle.textContent = "Saving portfolio metrics to PostgreSQL...";
         
