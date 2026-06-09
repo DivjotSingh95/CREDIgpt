@@ -2018,6 +2018,10 @@
         const result = await res.json();
         
         if (result.stats) {
+          // Attach mappings to result.stats so it's always included in the sessionStorage cache!
+          if (tempUploadedFileInfo && tempUploadedFileInfo.mappings) {
+            result.stats.mappings = tempUploadedFileInfo.mappings;
+          }
           sessionStorage.setItem('credigpt_stats', JSON.stringify(result.stats));
         }
         
@@ -2092,10 +2096,34 @@
       if (!custId) return;
 
       // Get mappings
-      const mappings = datasetSummary ? datasetSummary.mappings : null;
+      let mappings = (datasetSummary ? datasetSummary.mappings : null) || (tempUploadedFileInfo ? tempUploadedFileInfo.mappings : null);
       if (!mappings) {
-        alert("No active schema mappings found. Please upload a dataset first.");
-        return;
+        // Ultimate fallback to default mappings if nothing exists (so simulator still runs for sample dataset)
+        mappings = {
+          "Applicant ID": "SK_ID_CURR",
+          "CODE_GENDER": "CODE_GENDER",
+          "Gender Code": "CODE_GENDER",
+          "CNT_CHILDREN": "CNT_CHILDREN",
+          "Annual Earnings": "AMT_INCOME_TOTAL",
+          "Loan Value": "AMT_CREDIT",
+          "AMT_ANNUITY": "AMT_ANNUITY",
+          "AMT_GOODS_PRICE": "AMT_GOODS_PRICE",
+          "NAME_INCOME_TYPE": "NAME_INCOME_TYPE",
+          "NAME_EDUCATION_TYPE": "NAME_EDUCATION_TYPE",
+          "NAME_FAMILY_STATUS": "NAME_FAMILY_STATUS",
+          "NAME_HOUSING_TYPE": "NAME_HOUSING_TYPE",
+          "Age in Days": "DAYS_BIRTH",
+          "Employment Days": "DAYS_EMPLOYED",
+          "DAYS_REGISTRATION": "DAYS_REGISTRATION",
+          "DAYS_ID_PUBLISH": "DAYS_ID_PUBLISH",
+          "CNT_FAM_MEMBERS": "CNT_FAM_MEMBERS",
+          "REGION_RATING_CLIENT": "REGION_RATING_CLIENT",
+          "REGION_RATING_CLIENT_W_CITY": "REGION_RATING_CLIENT_W_CITY",
+          "ORGANIZATION_TYPE": "ORGANIZATION_TYPE",
+          "EXT_SOURCE_1": "EXT_SOURCE_1",
+          "EXT_SOURCE_2": "EXT_SOURCE_2",
+          "EXT_SOURCE_3": "EXT_SOURCE_3"
+        };
       }
 
       // Show loader on the button
