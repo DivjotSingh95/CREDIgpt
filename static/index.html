@@ -658,9 +658,11 @@
 </div>
 
 <script>
-  // Injected JSON data
-
-
+  // Set this to your Render backend URL when deploying.
+  // If empty, relative path is used (default for local development)
+  const API_BASE = window.location.hostname.includes('localhost') || window.location.hostname.includes('127.0.0.1')
+    ? ''
+    : 'https://credigpt-backend.onrender.com';
 
   let customers = [];
   let geminiApiKey = "";
@@ -944,7 +946,7 @@
     messages.scrollTop = messages.scrollHeight;
     
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(API_BASE + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: msg })
@@ -1388,8 +1390,8 @@
 
   async function loadDashboardData() {
     try {
-      const statsRes = await fetch('/api/stats');
-      const configRes = await fetch('/api/config');
+      const statsRes = await fetch(API_BASE + '/api/stats');
+      const configRes = await fetch(API_BASE + '/api/config');
       const stats = await statsRes.json();
       const config = await configRes.json();
 
@@ -1607,7 +1609,7 @@
     document.getElementById('processing-loader').style.display = 'none';
 
     try {
-      const res = await fetch('/api/load-sample');
+      const res = await fetch(API_BASE + '/api/load-sample');
       progressFill.style.width = '70%';
       
       if (!res.ok) {
@@ -1678,7 +1680,7 @@
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload-raw', {
+      const res = await fetch(API_BASE + '/api/upload-raw', {
         method: 'POST',
         body: formData
       });
@@ -1786,7 +1788,7 @@
       loader.style.display = 'block';
 
       try {
-        const res = await fetch('/api/process', {
+        const res = await fetch(API_BASE + '/api/process', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ mappings: finalMappings })

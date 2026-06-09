@@ -20,9 +20,20 @@ from utils.mapping import get_base_target_columns, get_heuristic_mappings, get_g
 from utils.validation import run_feature_engineering_pipeline
 from database.db_connection import process_upload_to_database
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="CREDIgpt Web API",
     description="Backend services for the CREDIgpt Credit Risk Intelligence Platform"
+)
+
+# Enable CORS for cross-domain requests (Vercel frontend calling Render backend)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Mount static files folder
