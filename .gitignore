@@ -128,3 +128,5 @@ database/*.csv
 database/*.xlsx
 database/*.json
 !database/.gitkeep
+!database/precomputed_features.csv
+!database/dashboard_stats.json
