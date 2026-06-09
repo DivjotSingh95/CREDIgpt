@@ -171,6 +171,7 @@
 
     /* Portfolio page */
     .page-title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .page-controls { display: flex; align-items: center; gap: 12px; }
     .page-eyebrow { color: var(--secondary); text-transform: uppercase; letter-spacing: .18em; font-size: 13px; font-weight: 900; }
     .page-title { margin: 5px 0 0; font-family: Manrope, sans-serif; font-size: 48px; line-height: 56px; font-weight: 800; }
     .filters { display: flex; align-items: center; gap: 14px; padding: 8px; border-radius: 14px; border: 1px solid rgba(198,198,205,.4); background: white; box-shadow: var(--shadow); }
@@ -259,6 +260,11 @@
     }
 
     @media (max-width: 600px) {
+      .page-title-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; margin-bottom: 16px !important; }
+      .page-controls { width: 100% !important; display: flex !important; gap: 8px !important; }
+      .page-controls .search { width: 45% !important; flex: 1 !important; margin: 0 !important; }
+      .page-controls select { width: 55% !important; flex: 1.2 !important; min-width: 0 !important; max-width: 55% !important; }
+
       main { padding: 80px 12px 24px; }
       .card, .glass-card { padding: 14px; }
       .display { font-size: 28px !important; line-height: 36px !important; margin-bottom: 12px; }
@@ -578,7 +584,7 @@
           <div style="color:var(--on-surface-variant);font-size:13px;">Analytics / Customer Profile</div>
           <h1 class="page-title" style="font-size:32px;line-height:40px;">Risk Profile Analysis</h1>
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
+        <div class="page-controls">
           <div class="search" style="position:static; width:220px; background:white; border:1px solid rgba(198,198,205,.6); height:38px;">
             <span class="material-symbols-outlined" style="cursor:pointer;" onclick="filterCustomers()">search</span>
             <input id="cust-search" placeholder="Search ID, Risk, etc..." oninput="filterCustomers()" onkeydown="if(event.key==='Enter') { event.preventDefault(); filterCustomers(); }" style="width:100%; border:0; outline:0; background:transparent;" />
