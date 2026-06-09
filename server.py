@@ -356,6 +356,14 @@ class RiskSimulationRequest(BaseModel):
 
 @app.post("/api/simulate")
 def simulate_risk(req: RiskSimulationRequest):
+    # Flatten mappings if nested (supports both flat and dict-of-dict formats)
+    flat_mappings = {}
+    for k, v in req.mappings.items():
+        if isinstance(v, dict):
+            flat_mappings[k] = v.get("model_feature")
+        else:
+            flat_mappings[k] = v
+
     temp_path = os.path.join("database", "temp_upload.csv")
     if not os.path.exists(temp_path):
         temp_path = os.path.join("database", "original_uploaded.csv")
@@ -372,9 +380,12 @@ def simulate_risk(req: RiskSimulationRequest):
 
     # Find raw column mapped to SK_ID_CURR
     id_col = None
-    for raw_col, target in req.mappings.items():
+    for raw_col, target in flat_mappings.items():
         if target == "SK_ID_CURR":
-            id_col = raw_col
+            if raw_col in df.columns:
+                id_col = raw_col
+            elif target in df.columns:
+                id_col = target
             break
 
     if id_col is None:
@@ -388,34 +399,45 @@ def simulate_risk(req: RiskSimulationRequest):
         row_idx = df[row_mask].index[0]
 
     # Map request values back to raw columns using the mappings
-    for raw_col, target in req.mappings.items():
+    for raw_col, target in flat_mappings.items():
         if not target:
             continue
+            
+        # Determine which column in df to modify
+        col_to_modify = None
+        if raw_col in df.columns:
+            col_to_modify = raw_col
+        elif target in df.columns:
+            col_to_modify = target
+            
+        if col_to_modify is None:
+            continue
+
         if target == "AMT_INCOME_TOTAL":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = req.income
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = req.income
         elif target == "AMT_CREDIT":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = req.credit
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = req.credit
         elif target == "DAYS_BIRTH":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = -req.age * 365.25
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = -req.age * 365.25
         elif target == "DAYS_EMPLOYED":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = -req.employment * 365.25
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = -req.employment * 365.25
         elif target == "EXT_SOURCE_1":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = req.ext1
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = req.ext1
         elif target == "EXT_SOURCE_2":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = req.ext2
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = req.ext2
         elif target == "EXT_SOURCE_3":
-            df[raw_col] = df[raw_col].astype(float)
-            df.at[row_idx, raw_col] = req.ext3
+            df[col_to_modify] = df[col_to_modify].astype(float)
+            df.at[row_idx, col_to_modify] = req.ext3
 
     # Run feature engineering
     try:
-        _, _, engineered_df = run_feature_engineering_pipeline(df, req.mappings)
+        _, _, engineered_df = run_feature_engineering_pipeline(df, flat_mappings)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Feature engineering failed in simulation: {str(e)}")
 
